@@ -1,0 +1,8 @@
+{
+  "name": "patients",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/patients/src",
+  "projectType": "application",
+  "tags": ["scope:patients"],
+  "targets": {}
+}

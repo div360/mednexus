@@ -1,0 +1,8 @@
+{
+  "name": "analytics",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/analytics/src",
+  "projectType": "application",
+  "tags": ["scope:analytics"],
+  "targets": {}
+}
