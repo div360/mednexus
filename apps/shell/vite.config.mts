@@ -9,6 +9,11 @@ import {
   federationHostSharedModules,
 } from '../../tools/vite/federation-react-shared.mts';
 
+function remoteEntryUrl(envName: string, fallback: string): string {
+  const baseUrl = process.env[envName] ?? fallback;
+  return `${baseUrl.replace(/\/$/, '')}/assets/remoteEntry.js`;
+}
+
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../node_modules/.vite/shell',
@@ -27,10 +32,10 @@ export default defineConfig(() => ({
     federation({
       name: 'shell',
       remotes: {
-        auth: 'http://localhost:3001/assets/remoteEntry.js',
-        dashboard: 'http://localhost:3002/assets/remoteEntry.js',
-        analytics: 'http://localhost:3003/assets/remoteEntry.js',
-        patients: 'http://localhost:3004/assets/remoteEntry.js',
+        auth: remoteEntryUrl('VITE_REMOTE_AUTH', 'http://localhost:3001'),
+        dashboard: remoteEntryUrl('VITE_REMOTE_DASHBOARD', 'http://localhost:3002'),
+        analytics: remoteEntryUrl('VITE_REMOTE_ANALYTICS', 'http://localhost:3003'),
+        patients: remoteEntryUrl('VITE_REMOTE_PATIENTS', 'http://localhost:3004'),
       },
       shared: federationHostShared,
     }),
