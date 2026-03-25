@@ -13,8 +13,6 @@ A B2B healthcare SaaS–style UI: authentication, dashboard, analytics, and pati
 
 ## Assignment scope (brief)
 
-**Objective:** Demonstrate frontend architecture, multi-module UX, and production-adjacent patterns (auth, data, notifications) on a simulated healthcare platform.
-
 | Requirement | What MedNexus does |
 |-------------|-------------------|
 | React + TypeScript | All apps and libraries |
