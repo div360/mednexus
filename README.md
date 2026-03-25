@@ -6,7 +6,7 @@ A B2B healthcare SaaS–style UI: authentication, dashboard, analytics, and pati
 
 | | |
 |--|--|
-| **Live** | _Add your deployed URL here (e.g. Vercel / Netlify)._ |
+| **Live** | https://mednexus-shell.vercel.app/ |
 | **Demo login** | **Email:** `divyanshajariya3@gmail.com` · **Password:** `123456` |
 
 ---
