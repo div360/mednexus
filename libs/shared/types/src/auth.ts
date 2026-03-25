@@ -16,6 +16,14 @@ export interface AuthState {
   error: string | null;
 }
 
+/** Zustand auth store actions (persist middleware omits these from storage). */
+export interface AuthActions {
+  setUser: (user: AppUser | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  logout: () => void;
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;

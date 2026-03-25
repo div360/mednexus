@@ -19,11 +19,26 @@ export const Sidebar = () => {
   return (
     <div className="w-64 bg-[#0f121e] border-r border-slate-800/50 flex flex-col h-full hidden md:flex">
       <div className="p-6 flex items-center space-x-3 mb-8">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-          <div className="w-5 h-5 bg-white rounded-full"></div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#7673C1]">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#25173B"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="3" fill="#25173B" />
+            <circle cx="5" cy="5" r="2" fill="#25173B" />
+            <circle cx="19" cy="5" r="2" fill="#25173B" />
+            <circle cx="5" cy="19" r="2" fill="#25173B" />
+            <path d="M7 7l3 3M17 7l-3 3M7 17l3-3M12 9V5" />
+          </svg>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight leading-tight">MedNexus</h1>
+          <h1 className="text-xl font-bold text-teal-400 tracking-tight leading-tight">MedNexus</h1>
           <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Clinical Prism</p>
         </div>
       </div>

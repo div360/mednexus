@@ -1,26 +1,20 @@
 import { create } from 'zustand';
-import type { DashboardData } from '@mednexus/shared/types';
+import type { DashboardStoreState } from '@mednexus/shared/types';
+import { usePatientStore } from '@mednexus/patients/data-access';
 import { buildDashboardDataFromPatients } from './buildDashboardData';
-import { mockPatients } from './mock-data/mockPatients';
 
-interface DashboardState {
-  data: DashboardData | null;
-  isLoading: boolean;
-  error: string | null;
-  fetchData: () => Promise<void>;
-}
-
-export const useDashboardStore = create<DashboardState>((set) => ({
-  data: buildDashboardDataFromPatients(mockPatients),
-  isLoading: false,
+export const useDashboardStore = create<DashboardStoreState>((set) => ({
+  data: null,
+  isLoading: true,
   error: null,
 
   fetchData: async () => {
     set({ isLoading: true, error: null });
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await usePatientStore.getState().fetchPatients();
+      const patients = usePatientStore.getState().patients;
       set({
-        data: buildDashboardDataFromPatients(mockPatients),
+        data: buildDashboardDataFromPatients(patients),
         isLoading: false,
       });
     } catch (error) {

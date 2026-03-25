@@ -1,3 +1,5 @@
+import type { NavigateFunction } from 'react-router-dom';
+
 export interface DashboardMetrics {
   totalPatients: {
     value: number;
@@ -48,4 +50,31 @@ export interface DashboardData {
   admissionsHistory: PatientAdmissionData[];
   caseDistribution: CaseDistributionData[];
   recentPatients: RecentPatient[];
+}
+
+/** Zustand dashboard store shape. */
+export interface DashboardStoreState {
+  data: DashboardData | null;
+  isLoading: boolean;
+  error: string | null;
+  fetchData: () => Promise<void>;
+}
+
+export interface CaseDistributionChartProps {
+  data: CaseDistributionData[];
+  totalActive: number;
+}
+
+export interface AdmissionsChartProps {
+  data: PatientAdmissionData[];
+}
+
+export interface RecentPatientsTableProps {
+  patients: RecentPatient[];
+  /** Required when embedded in shell MFE — host's navigate() avoids duplicate react-router-dom context. */
+  navigate?: NavigateFunction;
+}
+
+export interface SummaryCardsProps {
+  metrics: DashboardMetrics;
 }

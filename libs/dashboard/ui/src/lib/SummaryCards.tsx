@@ -1,12 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@mednexus/shared/ui';
 import { Users, Activity, AlertTriangle, CheckCircle } from 'lucide-react';
-import type { DashboardMetrics } from '@mednexus/shared/types';
+import type { SummaryCardsProps } from '@mednexus/shared/types';
 import { cn } from '@mednexus/shared/utils';
-
-interface SummaryCardsProps {
-  metrics: DashboardMetrics;
-}
 
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ metrics }) => {
   const cards = [

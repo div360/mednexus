@@ -1,15 +1,8 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@mednexus/shared/ui';
 import { ExternalLink } from 'lucide-react';
-import type { NavigateFunction } from 'react-router-dom';
-import type { RecentPatient, RecentPatientStatus } from '@mednexus/shared/types';
+import type { RecentPatient, RecentPatientStatus, RecentPatientsTableProps } from '@mednexus/shared/types';
 import { cn } from '@mednexus/shared/utils';
-
-interface RecentPatientsTableProps {
-  patients: RecentPatient[];
-  /** Required when embedded in shell MFE — host's navigate() avoids duplicate react-router-dom context. */
-  navigate?: NavigateFunction;
-}
 
 const StatusBadge = ({ status }: { status: RecentPatientStatus }) => {
   const getStyles = () => {

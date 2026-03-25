@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Suspense } from 'react';
+import { Suspense, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@mednexus/auth/data-access';
 import { Layout } from './components/Layout';
@@ -19,13 +19,32 @@ function DashboardWithHostNavigate() {
 }
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return children;
 }
 
-export function App() {
+/**
+ * Login/signup must render inside the shell Router (Navigate works here).
+ * Uses a stable navigate callback so the remote AuthPage is not remounted every App render.
+ * If already authenticated, redirect before mounting the federated auth bundle.
+ */
+function LoginEntry() {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const goDashboard = useCallback(() => {
+    navigate('/dashboard', { replace: true });
+  }, [navigate]);
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <AuthApp onLoginSuccess={goDashboard} />;
+}
+
+export function App() {
   return (
     <Suspense fallback={
       <div className="flex h-screen w-screen items-center justify-center bg-surface-50 text-brand-600">
@@ -33,8 +52,8 @@ export function App() {
       </div>
     }>
         <Routes>
-          <Route path="/login" element={<AuthApp onLoginSuccess={() => navigate('/dashboard')} />} />
-          <Route path="/signup" element={<AuthApp onLoginSuccess={() => navigate('/dashboard')} />} />
+          <Route path="/login" element={<LoginEntry />} />
+          <Route path="/signup" element={<LoginEntry />} />
           
           <Route element={
             <RequireAuth>

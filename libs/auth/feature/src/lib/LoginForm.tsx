@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from '@mednexus/shared/firebase';
-import { useAuthStore } from '@mednexus/auth/data-access';
-import type { LoginCredentials } from '@mednexus/shared/types';
+import { getAuthStore, upsertUserProfileInFirestore } from '@mednexus/auth/data-access';
+import type { AppUser, LoginCredentials } from '@mednexus/shared/types';
 import { loginSchema } from '@mednexus/shared/types';
 
 export function LoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { setUser, setLoading, setError } = useAuthStore();
+  const useHostAuth = getAuthStore();
+  const { setUser, setLoading, setError } = useHostAuth();
 
   const {
     register,
@@ -25,15 +26,16 @@ export function LoginForm({ onSuccess }: { onSuccess: () => void }) {
       setLoading(true);
       const userCredential = await signIn(data.email, data.password);
 
-      setUser({
+      const appUser: AppUser = {
         uid: userCredential.user.uid,
         email: userCredential.user.email || '',
         displayName: userCredential.user.displayName,
         photoURL: null,
         role: 'doctor',
         createdAt: new Date().toISOString(),
-      });
-
+      };
+      setUser(appUser);
+      await upsertUserProfileInFirestore(appUser);
       onSuccess();
     } catch (err: unknown) {
       setError((err as Error).message);

@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signUp } from '@mednexus/shared/firebase';
-import { useAuthStore } from '@mednexus/auth/data-access';
-import type { SignupCredentials } from '@mednexus/shared/types';
+import { getAuthStore, upsertUserProfileInFirestore } from '@mednexus/auth/data-access';
+import type { AppUser, SignupCredentials } from '@mednexus/shared/types';
 import { signupSchema } from '@mednexus/shared/types';
 
 export function SignupForm({ onSuccess }: { onSuccess: () => void }) {
   const [errorMsg, setErrorMsg] = useState('');
-  const { setUser, setLoading, setError } = useAuthStore();
+  const useHostAuth = getAuthStore();
+  const { setUser, setLoading, setError } = useHostAuth();
 
   const {
     register,
@@ -28,15 +29,16 @@ export function SignupForm({ onSuccess }: { onSuccess: () => void }) {
         data.displayName
       );
 
-      setUser({
+      const appUser: AppUser = {
         uid: userCredential.user.uid,
         email: userCredential.user.email || '',
         displayName: data.displayName,
         photoURL: null,
         role: 'doctor',
         createdAt: new Date().toISOString(),
-      });
-
+      };
+      setUser(appUser);
+      await upsertUserProfileInFirestore(appUser);
       onSuccess();
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };

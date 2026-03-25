@@ -1,6 +1,20 @@
 export type PatientStatus = 'active' | 'discharged' | 'critical' | 'stable' | 'observation';
 export type BloodGroup = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+/** Patients list layout (grid vs table). */
 export type ViewMode = 'grid' | 'list';
+
+/** Firestore-backed patient list query (search + filters). */
+export interface PatientsQueryParams {
+  search: string;
+  statusFilter: string;
+  departmentFilter: string;
+}
+
+/** Distinct values for filter dropdowns (from Firestore). */
+export interface PatientFilterMetadata {
+  departments: string[];
+  statuses: string[];
+}
 
 export interface Vitals {
   bloodPressure: string;
@@ -50,4 +64,20 @@ export interface Patient {
   diagnoses: Diagnosis[];
   appointments: Appointment[];
   avatarUrl?: string;
+}
+
+/** Zustand patient store shape (state + actions). */
+export interface PatientStoreState {
+  patients: Patient[];
+  selectedPatient: Patient | null;
+  isLoading: boolean;
+  filterMetadata: PatientFilterMetadata | null;
+  lastQueryParams: PatientsQueryParams;
+  setPatients: (patients: Patient[]) => void;
+  selectPatient: (patient: Patient | null) => void;
+  setLoading: (loading: boolean) => void;
+  fetchPatients: () => Promise<void>;
+  loadFilterMetadata: () => Promise<void>;
+  queryPatients: (params: PatientsQueryParams) => Promise<void>;
+  addPatient: (patient: Patient) => Promise<void>;
 }

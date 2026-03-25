@@ -1,4 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
 import {
   getAuth,
   Auth,
@@ -29,6 +30,8 @@ if (!getApps().length) {
 }
 
 export const auth: Auth = getAuth(app);
+
+export const db: Firestore = getFirestore(app);
 
 export const signIn = (email: string, password: string): Promise<UserCredential> =>
   signInWithEmailAndPassword(auth, email, password);

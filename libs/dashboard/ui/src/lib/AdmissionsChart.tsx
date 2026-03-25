@@ -1,11 +1,7 @@
 import React, { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@mednexus/shared/ui';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import type { PatientAdmissionData } from '@mednexus/shared/types';
-
-interface AdmissionsChartProps {
-  data: PatientAdmissionData[];
-}
+import type { AdmissionsChartProps } from '@mednexus/shared/types';
 
 export const AdmissionsChart = memo(({ data }: AdmissionsChartProps) => {
   return (

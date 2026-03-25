@@ -1,13 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AppUser, AuthState } from '@mednexus/shared/types';
-
-interface AuthActions {
-  setUser: (user: AppUser | null) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  logout: () => void;
-}
+import type { AuthActions, AuthState } from '@mednexus/shared/types';
 
 export const useAuthStore = create<AuthState & AuthActions>()(
   persist(
