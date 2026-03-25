@@ -4,6 +4,11 @@ import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 import federation from '@originjs/vite-plugin-federation';
+import {
+  federationReactAliases,
+  federationShared,
+  federationSharedModules,
+} from '../../tools/vite/federation-react-shared.mts';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -26,9 +31,13 @@ export default defineConfig(() => ({
       exposes: {
         './AuthPage': './src/app/app.tsx'
       },
-      shared: ['react', 'react-dom']
+      shared: federationShared
     })
   ],
+  resolve: {
+    alias: federationReactAliases,
+    dedupe: [...federationSharedModules]
+  },
   // Uncomment this if you are using workers.
   // worker: {
   //   plugins: () => [ nxViteTsPaths() ],

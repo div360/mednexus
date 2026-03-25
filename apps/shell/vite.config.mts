@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 import federation from '@originjs/vite-plugin-federation';
+import {
+  federationHostShared,
+  federationHostSharedModules,
+} from '../../tools/vite/federation-react-shared.mts';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -28,13 +32,12 @@ export default defineConfig(() => ({
         analytics: 'http://localhost:3003/assets/remoteEntry.js',
         patients: 'http://localhost:3004/assets/remoteEntry.js',
       },
-      shared: ['react', 'react-dom']
-    })
+      shared: federationHostShared,
+    }),
   ],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //   plugins: () => [ nxViteTsPaths() ],
-  // },
+  resolve: {
+    dedupe: [...federationHostSharedModules],
+  },
   build: {
     target: 'esnext',
     outDir: '../dist/shell',

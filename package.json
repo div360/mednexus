@@ -3,7 +3,11 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev:all": "nx build auth && concurrently \"nx preview auth\" \"nx serve shell\""
+    "build:remotes": "nx run-many -t build --projects=auth,dashboard,analytics,patients",
+    "watch:remotes": "nx run-many -t build --projects=auth,dashboard,analytics,patients --watch",
+    "preview:remotes": "concurrently \"nx preview auth\" \"nx preview dashboard\" \"nx preview analytics\" \"nx preview patients\"",
+    "dev": "pnpm build:remotes && concurrently -c auto -n watch,preview,shell \"pnpm watch:remotes\" \"pnpm preview:remotes\" \"nx serve shell\"",
+    "start": "nx run-many -t serve --all"
   },
   "private": true,
   "devDependencies": {
@@ -67,7 +71,9 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.71.2",
     "react-router-dom": "6.30.3",
+    "recharts": "^2.12.7",
     "tailwind-merge": "^3.5.0",
+    "use-sync-external-store": "^1.2.2",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   }

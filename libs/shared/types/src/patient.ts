@@ -44,6 +44,8 @@ export interface Patient {
   department: string;
   assignedDoctor: string;
   admittedAt: string;
+  /** ISO datetime; set when `status` is `discharged` (used for dashboard stats). */
+  dischargedAt?: string;
   vitals: Vitals;
   diagnoses: Diagnosis[];
   appointments: Appointment[];

@@ -1,18 +1,46 @@
-# Mednexus
+# MedNexus — Clinical Prism
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A modern B2B Healthcare SaaS platform built with Micro-frontends (MFEs) using Nx, React, Vite, Tailwind CSS, and Zustand.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## 🚀 Getting Started
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+### Prerequisites
+- Node.js (v18+)
+- [pnpm](https://pnpm.io/) (Recommended)
 
-## Run tasks
-
-To run tasks with Nx use:
+### Installation
+Run the following at the repository root to install dependencies:
 
 ```sh
-npx nx <target> <project-name>
+pnpm install
 ```
+
+### Running the Application
+
+To orchestrate and start all micro-frontends and the shell host simultaneously, use the Nx `run-many` command:
+
+```sh
+npx nx run-many --target=serve --all
+```
+
+**Access Points:**
+- **Main Shell (Host) Application:** [http://localhost:3000](http://localhost:3000)
+- Auth Remote: [http://localhost:3001](http://localhost:3001)
+- Dashboard Remote: [http://localhost:3002](http://localhost:3002)
+- Analytics Remote: [http://localhost:3003](http://localhost:3003)
+- Patients Remote: [http://localhost:3004](http://localhost:3004)
+
+Open `http://localhost:3000` in your browser to start interacting with MedNexus.
+
+## 📦 Project Structure
+- `apps/shell`: Orchestrates routing and loads federated modules.
+- `apps/<feature>`: Independent deployable MFEs.
+- `libs/shared/*`: Shared global state (Zustand stores), UI components, Types, and Utils.
+
+---
+
+## Nx Workspace Features
+
 
 For example:
 

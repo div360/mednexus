@@ -25,6 +25,9 @@
       "@mednexus/patients/feature": ["libs/patients/feature/src/index.ts"],
       "@mednexus/patients/data-access": ["libs/patients/data-access/src/index.ts"],
       "@mednexus/dashboard/feature": ["libs/dashboard/feature/src/index.ts"],
+      "@mednexus/dashboard/data-access": ["libs/dashboard/data-access/src/index.ts"],
+      "@mednexus/dashboard/ui": ["libs/dashboard/ui/src/index.ts"],
+      "@mednexus/dashboard/with-store": ["libs/dashboard/feature/src/lib/DashboardPage.tsx"],
       "@mednexus/analytics/feature": ["libs/analytics/feature/src/index.ts"]
     }
   },
