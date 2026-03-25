@@ -35,9 +35,6 @@ export function AuthPage({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
             Nexus — The central connection for{' '}
             <span className="text-teal-400">modern medicine.</span>
           </h1>
-          <p className="text-surface-400 text-[19px] leading-relaxed max-w-lg mb-12 font-medium">
-            Clinical intelligence at your fingertips. Securely access patient data, predictive analytics, and enterprise-grade medical insights.
-          </p>
 
           <div className="inline-flex items-center gap-3 rounded-full bg-white/[0.04] border border-white/10 px-4 py-2.5 text-sm font-medium text-surface-200">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-teal-500" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +88,7 @@ export function AuthPage({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
 
           <div className="mt-8 text-center text-xs text-surface-500 relative z-10">
             {activeTab === 'login' ? (
-              <p>Don't have access? <button type="button" onClick={() => setActiveTab('signup')} className="text-teal-400 hover:text-teal-300 font-medium ml-1">Request Account</button></p>
+              <p>Don't have access? <button type="button" onClick={() => setActiveTab('signup')} className="text-teal-400 hover:text-teal-300 font-medium ml-1">Sign up</button></p>
             ) : (
               <p>Already registered? <button type="button" onClick={() => setActiveTab('login')} className="text-teal-400 hover:text-teal-300 font-medium ml-1">Return to Login</button></p>
             )}

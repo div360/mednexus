@@ -161,6 +161,9 @@ function mapDocumentToPatient(
     assignedDoctor:
       typeof data.assignedDoctor === 'string' ? data.assignedDoctor : '',
     admittedAt: toIsoString(data.admittedAt),
+    ...(typeof data.lastVisitedAt === 'string'
+      ? { lastVisitedAt: data.lastVisitedAt }
+      : {}),
     ...(typeof data.dischargedAt === 'string'
       ? { dischargedAt: data.dischargedAt }
       : {}),
@@ -314,4 +317,13 @@ export async function createPatientInFirestore(patient: Patient): Promise<void> 
   payload.firstNameLower = patient.firstName.toLowerCase();
   payload.lastNameLower = patient.lastName.toLowerCase();
   await setDoc(ref, payload);
+}
+
+/** Updates an existing patient document at `patients/{patient.id}`. */
+export async function updatePatientInFirestore(patient: Patient): Promise<void> {
+  const ref = doc(db, PATIENTS_COLLECTION, patient.id);
+  const payload = JSON.parse(JSON.stringify(patient)) as Record<string, unknown>;
+  payload.firstNameLower = patient.firstName.toLowerCase();
+  payload.lastNameLower = patient.lastName.toLowerCase();
+  await updateDoc(ref, payload);
 }

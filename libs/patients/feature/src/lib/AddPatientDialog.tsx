@@ -1,15 +1,22 @@
 import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import type { Patient, Vitals } from '@mednexus/shared/types';
-import {
-  addPatientSchema,
-  bloodGroups,
-  type AddPatientForm,
-} from '@mednexus/shared/types';
+import { addPatientSchema, type AddPatientForm } from '@mednexus/shared/types';
 import { usePatientStore } from '@mednexus/patients/data-access';
 import { Button, Input, Label, cn } from '@mednexus/shared/ui';
+
+const bloodGroups = [
+  'A+',
+  'A-',
+  'B+',
+  'B-',
+  'AB+',
+  'AB-',
+  'O+',
+  'O-',
+] as const;
 
 function newPatientId(): string {
   return `P-${crypto.randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
@@ -28,25 +35,20 @@ function defaultVitals(): Vitals {
   };
 }
 
-function toDatetimeLocalValue(d: Date): string {
+function toDatetimeLocalValue(value?: string | Date): string {
+  const d = value ? new Date(value) : new Date();
+  if (Number.isNaN(d.getTime())) {
+    return '';
+  }
+
   const pad = (n: number) => n.toString().padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-const inputDark =
-  'bg-[#0f172a]/80 border-white/10 text-white placeholder:text-gray-500 focus-visible:ring-brand-500';
-
-const selectDark =
-  'w-full rounded-md border border-white/10 bg-[#0f172a]/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500';
-
-export function AddPatientDialog() {
-  const [open, setOpen] = React.useState(false);
-  const [submitError, setSubmitError] = React.useState<string | null>(null);
-  const addPatient = usePatientStore((s) => s.addPatient);
-
-  const form = useForm<AddPatientForm>({
-    resolver: zodResolver(addPatientSchema),
-    defaultValues: {
+function buildDefaultValues(patient?: Patient | null): AddPatientForm {
+  if (!patient) {
+    const now = toDatetimeLocalValue(new Date());
+    return {
       firstName: '',
       lastName: '',
       dateOfBirth: '',
@@ -58,18 +60,102 @@ export function AddPatientDialog() {
       status: 'stable',
       department: '',
       assignedDoctor: '',
-      admittedAt: toDatetimeLocalValue(new Date()),
+      admittedAt: now,
+      lastVisitedAt: now,
       dischargedAt: '',
+    };
+  }
+
+  return {
+    firstName: patient.firstName,
+    lastName: patient.lastName,
+    dateOfBirth: patient.dateOfBirth,
+    gender: patient.gender,
+    bloodGroup: patient.bloodGroup,
+    email: patient.email,
+    phone: patient.phone,
+    address: patient.address,
+    status: patient.status,
+    department: patient.department,
+    assignedDoctor: patient.assignedDoctor,
+    admittedAt: toDatetimeLocalValue(patient.admittedAt),
+    lastVisitedAt: toDatetimeLocalValue(patient.lastVisitedAt ?? patient.admittedAt),
+    dischargedAt: patient.dischargedAt
+      ? toDatetimeLocalValue(patient.dischargedAt)
+      : '',
+  };
+}
+
+const inputDark =
+  'bg-[#0f172a]/80 border-white/10 text-white placeholder:text-gray-500 focus-visible:ring-brand-500';
+
+const selectDark =
+  'w-full rounded-md border border-white/10 bg-[#0f172a]/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500';
+
+export interface AddPatientDialogProps {
+  mode?: 'create' | 'edit';
+  patient?: Patient | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
+  onSaved?: (patient: Patient, mode: 'create' | 'edit') => void;
+}
+
+export function AddPatientDialog({
+  mode = 'create',
+  patient = null,
+  open,
+  onOpenChange,
+  trigger,
+  onSaved,
+}: AddPatientDialogProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const addPatient = usePatientStore((s) => s.addPatient);
+  const updatePatient = usePatientStore((s) => s.updatePatient);
+
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+
+  const setOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(nextOpen);
+      }
+      onOpenChange?.(nextOpen);
     },
+    [isControlled, onOpenChange]
+  );
+
+  const form = useForm<AddPatientForm>({
+    resolver: zodResolver(addPatientSchema),
+    defaultValues: buildDefaultValues(patient),
   });
 
+  React.useEffect(() => {
+    if (isOpen) {
+      form.reset(buildDefaultValues(patient));
+      setSubmitError(null);
+    }
+  }, [form, isOpen, patient]);
+
   const status = form.watch('status');
+  const title = mode === 'edit' ? 'Update patient' : 'Add patient';
+  const description =
+    mode === 'edit'
+      ? 'Update the clinical profile and doctor visit timestamp.'
+      : 'Create a new clinical profile. It will be stored in Firestore.';
+  const submitLabel = mode === 'edit' ? 'Save changes' : 'Create patient';
 
   const onSubmit = form.handleSubmit(async (values) => {
     setSubmitError(null);
     const admittedIso = new Date(values.admittedAt).toISOString();
-    const patient: Patient = {
-      id: newPatientId(),
+    const lastVisitedAt = values.lastVisitedAt
+      ? new Date(values.lastVisitedAt).toISOString()
+      : admittedIso;
+
+    const nextPatient: Patient = {
+      id: mode === 'edit' && patient ? patient.id : newPatientId(),
       firstName: values.firstName.trim(),
       lastName: values.lastName.trim(),
       dateOfBirth: values.dateOfBirth,
@@ -82,48 +168,34 @@ export function AddPatientDialog() {
       department: values.department.trim(),
       assignedDoctor: values.assignedDoctor.trim(),
       admittedAt: admittedIso,
-      vitals: defaultVitals(),
-      diagnoses: [],
-      appointments: [],
+      lastVisitedAt,
+      vitals: patient?.vitals ?? defaultVitals(),
+      diagnoses: patient?.diagnoses ?? [],
+      appointments: patient?.appointments ?? [],
+      ...(patient?.avatarUrl ? { avatarUrl: patient.avatarUrl } : {}),
       ...(values.status === 'discharged' && values.dischargedAt
         ? {
             dischargedAt: new Date(values.dischargedAt).toISOString(),
           }
         : {}),
     };
+
     try {
-      await addPatient(patient);
+      if (mode === 'edit' && patient) {
+        await updatePatient(nextPatient);
+      } else {
+        await addPatient(nextPatient);
+      }
+      onSaved?.(nextPatient, mode);
       setOpen(false);
-      form.reset({
-        firstName: '',
-        lastName: '',
-        dateOfBirth: '',
-        gender: 'male',
-        bloodGroup: 'O+',
-        email: '',
-        phone: '',
-        address: '',
-        status: 'stable',
-        department: '',
-        assignedDoctor: '',
-        admittedAt: toDatetimeLocalValue(new Date()),
-        dischargedAt: '',
-      });
     } catch (e) {
       setSubmitError((e as Error).message ?? 'Failed to save patient');
     }
   });
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <Button
-          type="button"
-          className="bg-brand-600 hover:bg-brand-700 text-white shadow-sm"
-        >
-          Add patient
-        </Button>
-      </Dialog.Trigger>
+    <Dialog.Root open={isOpen} onOpenChange={setOpen}>
+      {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out" />
         <Dialog.Content
@@ -133,10 +205,10 @@ export function AddPatientDialog() {
           )}
         >
           <Dialog.Title className="text-lg font-semibold text-white mb-1">
-            Add patient
+            {title}
           </Dialog.Title>
           <Dialog.Description className="text-sm text-gray-400 mb-4">
-            Create a new clinical profile. It will be stored in Firestore.
+            {description}
           </Dialog.Description>
 
           <form onSubmit={onSubmit} className="space-y-4">
@@ -223,37 +295,38 @@ export function AddPatientDialog() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="ap-email" className="text-gray-300">
-                Email
-              </Label>
-              <Input
-                id="ap-email"
-                type="email"
-                className={inputDark}
-                {...form.register('email')}
-              />
-              {form.formState.errors.email && (
-                <p className="text-xs text-rose-400">
-                  {form.formState.errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="ap-phone" className="text-gray-300">
-                Phone
-              </Label>
-              <Input
-                id="ap-phone"
-                className={inputDark}
-                {...form.register('phone')}
-              />
-              {form.formState.errors.phone && (
-                <p className="text-xs text-rose-400">
-                  {form.formState.errors.phone.message}
-                </p>
-              )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="ap-email" className="text-gray-300">
+                  Email
+                </Label>
+                <Input
+                  id="ap-email"
+                  type="email"
+                  className={inputDark}
+                  {...form.register('email')}
+                />
+                {form.formState.errors.email && (
+                  <p className="text-xs text-rose-400">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ap-phone" className="text-gray-300">
+                  Phone
+                </Label>
+                <Input
+                  id="ap-phone"
+                  className={inputDark}
+                  {...form.register('phone')}
+                />
+                {form.formState.errors.phone && (
+                  <p className="text-xs text-rose-400">
+                    {form.formState.errors.phone.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -284,17 +357,17 @@ export function AddPatientDialog() {
                 >
                   <option value="active">Active</option>
                   <option value="stable">Stable</option>
-                  <option value="critical">Critical</option>
                   <option value="observation">Observation</option>
+                  <option value="critical">Critical</option>
                   <option value="discharged">Discharged</option>
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ap-dept" className="text-gray-300">
+                <Label htmlFor="ap-department" className="text-gray-300">
                   Department
                 </Label>
                 <Input
-                  id="ap-dept"
+                  id="ap-department"
                   className={inputDark}
                   {...form.register('department')}
                 />
@@ -327,64 +400,82 @@ export function AddPatientDialog() {
                 <Label htmlFor="ap-admitted" className="text-gray-300">
                   Admitted at
                 </Label>
-                <Input
-                  id="ap-admitted"
-                  type="datetime-local"
-                  className={inputDark}
-                  {...form.register('admittedAt')}
+                <Controller
+                  control={form.control}
+                  name="admittedAt"
+                  render={({ field }) => (
+                    <Input
+                      id="ap-admitted"
+                      type="datetime-local"
+                      className={inputDark}
+                      {...field}
+                    />
+                  )}
                 />
-                {form.formState.errors.admittedAt && (
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ap-last-visited" className="text-gray-300">
+                  Last visited by doctor
+                </Label>
+                <Controller
+                  control={form.control}
+                  name="lastVisitedAt"
+                  render={({ field }) => (
+                    <Input
+                      id="ap-last-visited"
+                      type="datetime-local"
+                      className={inputDark}
+                      {...field}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            {status === 'discharged' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="ap-discharged" className="text-gray-300">
+                  Discharged at
+                </Label>
+                <Controller
+                  control={form.control}
+                  name="dischargedAt"
+                  render={({ field }) => (
+                    <Input
+                      id="ap-discharged"
+                      type="datetime-local"
+                      className={inputDark}
+                      {...field}
+                    />
+                  )}
+                />
+                {form.formState.errors.dischargedAt && (
                   <p className="text-xs text-rose-400">
-                    {form.formState.errors.admittedAt.message}
+                    {form.formState.errors.dischargedAt.message}
                   </p>
                 )}
               </div>
-              {status === 'discharged' && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="ap-discharged" className="text-gray-300">
-                    Discharged at
-                  </Label>
-                  <Controller
-                    name="dischargedAt"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Input
-                        id="ap-discharged"
-                        type="datetime-local"
-                        className={inputDark}
-                        {...field}
-                      />
-                    )}
-                  />
-                  {form.formState.errors.dischargedAt && (
-                    <p className="text-xs text-rose-400">
-                      {form.formState.errors.dischargedAt.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
 
             {submitError && (
               <p className="text-sm text-rose-400">{submitError}</p>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-3 pt-2">
               <Dialog.Close asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-white/20 bg-transparent text-gray-200 hover:bg-white/10"
+                  className="border-white/10 bg-transparent text-gray-200 hover:bg-white/5"
                 >
                   Cancel
                 </Button>
               </Dialog.Close>
               <Button
                 type="submit"
-                disabled={form.formState.isSubmitting}
-                className="bg-brand-600 hover:bg-brand-700 text-white"
+                className="bg-brand-600 hover:bg-brand-700 text-white shadow-sm"
               >
-                {form.formState.isSubmitting ? 'Saving…' : 'Save patient'}
+                {submitLabel}
               </Button>
             </div>
           </form>

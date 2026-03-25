@@ -10,6 +10,7 @@ export function DataTable<T>({
   columns,
   keyExtractor,
   className,
+  onRowClick,
 }: DataTableProps<T>) {
   return (
     <div className={cn('w-full overflow-auto', className)}>
@@ -31,7 +32,11 @@ export function DataTable<T>({
           {data.map((item) => (
             <tr
               key={keyExtractor(item)}
-              className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
+              className={cn(
+                'hover:bg-white/[0.02] transition-colors group',
+                onRowClick ? 'cursor-pointer' : ''
+              )}
+              onClick={onRowClick ? () => onRowClick(item) : undefined}
             >
               {columns.map((col, colIdx) => (
                 <td

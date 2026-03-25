@@ -14,3 +14,10 @@ export interface AppNotification {
   isRead: boolean;
   patientId?: string;
 }
+
+export interface NotificationEventDetail {
+  title: string;
+  body: string;
+  tag?: string;
+  data?: Record<string, unknown>;
+}

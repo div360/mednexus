@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { DataTable, ColumnDef } from '@mednexus/shared/ui';
 import { Patient } from '@mednexus/shared/types';
+import {
+  formatVisitTimestamp,
+  getNextVisitDueAt,
+  isPatientVisitDue,
+} from '@mednexus/patients/data-access';
 import { PatientStatusBadge } from './PatientStatusBadge';
 
 function calculateAge(dobString: string): number {
@@ -20,7 +25,13 @@ function timeAgo(dateString: string): string {
   return `${diffInDays} day${diffInDays > 1 ? 's' : ''}`;
 }
 
-export function PatientList({ data }: { data: Patient[] }) {
+export function PatientList({
+  data,
+  onPatientClick,
+}: {
+  data: Patient[];
+  onPatientClick?: (patient: Patient) => void;
+}) {
 
   const getBloodGroupStyle = (bg: string) => {
     if (bg.includes('+')) return 'text-teal-400 font-medium';
@@ -87,7 +98,43 @@ export function PatientList({ data }: { data: Patient[] }) {
         </span>
       ),
     },
+    {
+      header: 'Last Visit',
+      cell: (p) => (
+        <span className="text-sm text-gray-300">
+          {formatVisitTimestamp(p.lastVisitedAt)}
+        </span>
+      ),
+    },
+    {
+      header: 'Next Check',
+      cell: (p) => {
+        const nextVisitDueAt = getNextVisitDueAt(p);
+        if (!nextVisitDueAt) {
+          return <span className="text-sm text-slate-500">Not required</span>;
+        }
+
+        const due = isPatientVisitDue(p);
+        return (
+          <div className="flex flex-col">
+            <span className={due ? 'text-amber-300 font-medium' : 'text-gray-300'}>
+              {formatVisitTimestamp(nextVisitDueAt)}
+            </span>
+            <span className={due ? 'text-xs text-amber-400' : 'text-xs text-slate-500'}>
+              {due ? 'Doctor visit due now' : 'Scheduled'}
+            </span>
+          </div>
+        );
+      },
+    },
   ];
 
-  return <DataTable data={data} columns={columns} keyExtractor={(p) => p.id} />;
+  return (
+    <DataTable
+      data={data}
+      columns={columns}
+      keyExtractor={(p) => p.id}
+      onRowClick={onPatientClick}
+    />
+  );
 }

@@ -8,6 +8,7 @@ export default {
     '../../libs/dashboard/feature/src/**/*.{ts,tsx,js,jsx}',
     '../../libs/dashboard/ui/src/**/*.{ts,tsx,js,jsx}',
     '../../libs/patients/feature/src/**/*.{ts,tsx,js,jsx}',
+    '../../libs/analytics/feature/src/**/*.{ts,tsx,js,jsx}',
   ],
   presets: [require('../../tailwind.config.js')],
   theme: { extend: {} },

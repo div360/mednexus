@@ -9,6 +9,7 @@ import {
   fetchPatientsFromFirestore,
   fetchPatientFilterMetadata,
   queryPatientsFromFirestore,
+  updatePatientInFirestore,
 } from './patientsFirestore';
 
 const defaultQuery: PatientsQueryParams = {
@@ -55,6 +56,17 @@ export const usePatientStore = create<PatientStoreState>((set, get) => ({
     try {
       await createPatientInFirestore(patient);
       await get().queryPatients(get().lastQueryParams);
+    } catch (e) {
+      set({ isLoading: false });
+      throw e;
+    }
+  },
+  updatePatient: async (patient) => {
+    set({ isLoading: true });
+    try {
+      await updatePatientInFirestore(patient);
+      await get().queryPatients(get().lastQueryParams);
+      set({ selectedPatient: patient });
     } catch (e) {
       set({ isLoading: false });
       throw e;

@@ -31,6 +31,7 @@ export const addPatientSchema = z
     department: z.string().min(1, 'Required'),
     assignedDoctor: z.string().min(1, 'Required'),
     admittedAt: z.string().min(1, 'Required'),
+    lastVisitedAt: z.string().optional(),
     dischargedAt: z.string().optional(),
   })
   .refine(

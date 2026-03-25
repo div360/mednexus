@@ -47,8 +47,11 @@ function LoginEntry() {
 export function App() {
   return (
     <Suspense fallback={
-      <div className="flex h-screen w-screen items-center justify-center bg-surface-50 text-brand-600">
-        <div className="animate-pulse-slow font-medium text-lg">Loading MedNexus...</div>
+      <div className="flex h-screen w-screen items-center justify-center bg-[#0a0c14] text-teal-400">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin mb-4"></div>
+          <div className="font-medium text-sm tracking-widest uppercase">Loading MedNexus...</div>
+        </div>
       </div>
     }>
         <Routes>

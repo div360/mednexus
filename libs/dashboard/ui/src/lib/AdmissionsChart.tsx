@@ -1,9 +1,18 @@
-import React, { memo } from 'react';
+import * as React from 'react';
+import { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@mednexus/shared/ui';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { AdmissionsChartProps } from '@mednexus/shared/types';
 
-export const AdmissionsChart = memo(({ data }: AdmissionsChartProps) => {
+export const AdmissionsChart = memo(({ data, monthlyData }: AdmissionsChartProps) => {
+  const [view, setView] = React.useState<'WEEK' | 'MONTH'>('WEEK');
+
+  const chartData = view === 'WEEK' ? data : monthlyData;
+
+  const btnBase = "text-xs px-3 py-1 rounded border transition-colors";
+  const btnActive = "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500";
+  const btnInactive = "bg-slate-700/50 hover:bg-slate-600 text-slate-300 border-slate-600";
+
   return (
     <Card className="bg-[#1e2335] border-slate-700/50 h-full flex flex-col">
       <CardHeader className="pb-0 flex-row items-start justify-between">
@@ -12,13 +21,13 @@ export const AdmissionsChart = memo(({ data }: AdmissionsChartProps) => {
           <p className="text-sm text-slate-400">Real-time throughput analytics</p>
         </div>
         <div className="flex space-x-2">
-          <button type="button" className="bg-slate-700/50 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1 rounded border border-slate-600 transition-colors">WEEK</button>
-          <button type="button" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1 rounded border border-indigo-500 transition-colors">MONTH</button>
+          <button type="button" onClick={() => setView('WEEK')} className={`${btnBase} ${view === 'WEEK' ? btnActive : btnInactive}`}>WEEK</button>
+          <button type="button" onClick={() => setView('MONTH')} className={`${btnBase} ${view === 'MONTH' ? btnActive : btnInactive}`}>MONTH</button>
         </div>
       </CardHeader>
       <CardContent className="flex-1 min-h-[250px] p-0 pt-6 mt-auto">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorAdmissions" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>

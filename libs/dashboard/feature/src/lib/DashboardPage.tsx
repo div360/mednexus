@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { useDashboardStore } from '@mednexus/dashboard/data-access';
 import {
@@ -48,7 +49,7 @@ export function DashboardPage(props?: { navigate?: NavigateFunction }) {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <AdmissionsChart data={data.admissionsHistory} />
+          <AdmissionsChart data={data.admissionsHistory} monthlyData={data.admissionsHistoryMonthly} />
         </div>
         <div className="lg:col-span-1">
           <CaseDistributionChart 

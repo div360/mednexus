@@ -48,6 +48,7 @@ export interface DashboardData {
   metrics: DashboardMetrics;
   admissionsUrl?: string; // or include data directly
   admissionsHistory: PatientAdmissionData[];
+  admissionsHistoryMonthly: PatientAdmissionData[];
   caseDistribution: CaseDistributionData[];
   recentPatients: RecentPatient[];
 }
@@ -67,6 +68,7 @@ export interface CaseDistributionChartProps {
 
 export interface AdmissionsChartProps {
   data: PatientAdmissionData[];
+  monthlyData: PatientAdmissionData[];
 }
 
 export interface RecentPatientsTableProps {

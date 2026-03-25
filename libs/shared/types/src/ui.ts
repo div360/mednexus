@@ -15,6 +15,7 @@ export interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   keyExtractor: (item: T) => string;
   className?: string;
+  onRowClick?: (item: T) => void;
 }
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}

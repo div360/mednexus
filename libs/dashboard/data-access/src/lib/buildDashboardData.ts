@@ -92,10 +92,11 @@ function countAdmissionsBetween(
 
 function buildAdmissionsHistory(
   patients: Patient[],
-  now: Date
+  now: Date,
+  days = 7
 ): PatientAdmissionData[] {
   const out: PatientAdmissionData[] = [];
-  for (let i = 6; i >= 0; i--) {
+  for (let i = days - 1; i >= 0; i--) {
     const day = new Date(now);
     day.setDate(day.getDate() - i);
     day.setHours(12, 0, 0, 0);
@@ -103,6 +104,24 @@ function buildAdmissionsHistory(
     const admissions = patients.filter((p) =>
       sameCalendarDay(new Date(p.admittedAt), day)
     ).length;
+    out.push({ date: label, admissions });
+  }
+  return out;
+}
+
+function buildAdmissionsHistoryMonthly(
+  patients: Patient[],
+  now: Date,
+  months = 12
+): PatientAdmissionData[] {
+  const out: PatientAdmissionData[] = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = MONTHS[d.getMonth()];
+    const admissions = patients.filter((p) => {
+      const pd = new Date(p.admittedAt);
+      return pd.getFullYear() === d.getFullYear() && pd.getMonth() === d.getMonth();
+    }).length;
     out.push({ date: label, admissions });
   }
   return out;
@@ -180,7 +199,8 @@ export function buildDashboardDataFromPatients(
       criticalAlerts: { value: criticalAlerts, trend: 0 },
       dischargedToday: { value: dischargedToday, trend: 0 },
     },
-    admissionsHistory: buildAdmissionsHistory(patients, now),
+    admissionsHistory: buildAdmissionsHistory(patients, now, 7),
+    admissionsHistoryMonthly: buildAdmissionsHistoryMonthly(patients, now, 12),
     caseDistribution: buildCaseDistribution(patients),
     recentPatients: buildRecentPatients(patients, now),
   };

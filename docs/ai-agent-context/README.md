@@ -18,3 +18,5 @@ Use this folder as the **single source of truth** for how to work on this reposi
 ## Canonical plan document
 
 The human-oriented roadmap and checklists live at the repo root: **`implementation_plan.md`**. The files here distill what agents must **respect** when editing code; they do not replace that document for product planning.
+
+For a human-readable overview of product scope, architecture, and how the work maps to a typical frontend take-home, see the root **`README.md`**.

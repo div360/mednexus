@@ -1,8 +1,19 @@
 import * as React from 'react';
 import { Patient } from '@mednexus/shared/types';
+import {
+  formatVisitTimestamp,
+  getNextVisitDueAt,
+  isPatientVisitDue,
+} from '@mednexus/patients/data-access';
 import { PatientStatusBadge } from './PatientStatusBadge';
 
-export function PatientGrid({ data }: { data: Patient[] }) {
+export function PatientGrid({
+  data,
+  onPatientClick,
+}: {
+  data: Patient[];
+  onPatientClick?: (patient: Patient) => void;
+}) {
   const getVitalsColor = (hr: number) => {
     if (hr > 100 || hr < 60) return 'text-orange-400';
     return 'text-white';
@@ -26,7 +37,12 @@ export function PatientGrid({ data }: { data: Patient[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
       {data.map((p) => (
-        <div key={p.id} className="bg-[#151c2c] border border-white/5 rounded-2xl p-6 flex flex-col hover:border-white/10 transition-colors shadow-lg">
+        <button
+          key={p.id}
+          type="button"
+          onClick={() => onPatientClick?.(p)}
+          className="bg-[#151c2c] border border-white/5 rounded-2xl p-6 flex flex-col hover:border-white/10 transition-colors shadow-lg text-left"
+        >
           
           {/* Header Row */}
           <div className="flex justify-between items-start mb-2">
@@ -75,7 +91,21 @@ export function PatientGrid({ data }: { data: Patient[] }) {
               <div className="text-sm font-medium text-white truncate">{p.assignedDoctor || 'Unassigned'}</div>
             </div>
           </div>
-        </div>
+
+          <div className="mt-auto border-t border-white/5 pt-4 text-xs">
+            <div className="text-gray-400">
+              Last visit: <span className="text-gray-200">{formatVisitTimestamp(p.lastVisitedAt)}</span>
+            </div>
+            <div className={isPatientVisitDue(p) ? 'mt-1 text-amber-400' : 'mt-1 text-slate-400'}>
+              Next check:{' '}
+              <span className="text-gray-200">
+                {getNextVisitDueAt(p)
+                  ? formatVisitTimestamp(getNextVisitDueAt(p))
+                  : 'Not required'}
+              </span>
+            </div>
+          </div>
+        </button>
       ))}
     </div>
   );

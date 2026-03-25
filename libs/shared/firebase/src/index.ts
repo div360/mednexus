@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { doc, getFirestore, Firestore, setDoc } from 'firebase/firestore';
 import {
   getAuth,
   Auth,
@@ -11,6 +11,14 @@ import {
   User,
   UserCredential,
 } from 'firebase/auth';
+import {
+  getMessaging,
+  getToken,
+  isSupported as isMessagingSupported,
+  onMessage,
+  type MessagePayload,
+  type Messaging,
+} from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? 'placeholder-api-key',
@@ -50,3 +58,57 @@ export const signOut = (): Promise<void> => firebaseSignOut(auth);
 
 export const onAuthChange = (callback: (user: User | null) => void) =>
   firebaseOnAuthStateChanged(auth, callback);
+
+export async function getFirebaseMessaging(): Promise<Messaging | null> {
+  if (!(await isMessagingSupported())) {
+    return null;
+  }
+
+  return getMessaging(app);
+}
+
+export async function getFirebaseMessagingToken(
+  serviceWorkerRegistration: ServiceWorkerRegistration
+): Promise<string | null> {
+  const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+  if (!vapidKey) {
+    return null;
+  }
+
+  const messaging = await getFirebaseMessaging();
+  if (!messaging) {
+    return null;
+  }
+
+  return getToken(messaging, {
+    vapidKey,
+    serviceWorkerRegistration,
+  });
+}
+
+export async function onFirebaseForegroundMessage(
+  callback: (payload: MessagePayload) => void
+): Promise<() => void> {
+  const messaging = await getFirebaseMessaging();
+  if (!messaging) {
+    return () => undefined;
+  }
+
+  return onMessage(messaging, callback);
+}
+
+export async function saveFirebaseMessagingToken(
+  userId: string,
+  token: string
+): Promise<void> {
+  await setDoc(
+    doc(db, 'notification_subscriptions', `${userId}_web`),
+    {
+      userId,
+      token,
+      platform: 'web',
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+}

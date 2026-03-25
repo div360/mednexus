@@ -1,13 +1,19 @@
 import { useState, useMemo, useEffect } from 'react';
-import type { ViewMode } from '@mednexus/shared/types';
+import type { Patient, ViewMode } from '@mednexus/shared/types';
 import { PatientList } from './PatientList';
 import { PatientGrid } from './PatientGrid';
 import { AddPatientDialog } from './AddPatientDialog';
-import { usePatientStore } from '@mednexus/patients/data-access';
+import {
+  getNextVisitDueAt,
+  isPatientVisitDue,
+  usePatientStore,
+} from '@mednexus/patients/data-access';
+import { emitAppNotification } from '@mednexus/shared/utils';
 
 export function PatientsPage() {
   const patients = usePatientStore((s) => s.patients);
   const filterMetadata = usePatientStore((s) => s.filterMetadata);
+  const isLoading = usePatientStore((s) => s.isLoading);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -15,6 +21,7 @@ export function PatientsPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number | 'all'>(10);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
   useEffect(() => {
     void usePatientStore.getState().loadFilterMetadata();
@@ -73,6 +80,49 @@ export function PatientsPage() {
       : (currentPage - 1) * activeItemsPerPage + 1;
   const endIndex = Math.min(currentPage * activeItemsPerPage, patients.length);
 
+  const handlePatientSaved = (patient: Patient, mode: 'create' | 'edit') => {
+    if (mode === 'create') {
+      emitAppNotification({
+        title: 'New patient added',
+        body: `${patient.firstName} ${patient.lastName} was added to the registry.`,
+        tag: `patient-created-${patient.id}`,
+        data: { patientId: patient.id, type: 'system', url: '/patients' },
+      });
+      return;
+    }
+
+    if (!isPatientVisitDue(patient)) {
+      const nextDueAt = getNextVisitDueAt(patient);
+      emitAppNotification({
+        title: 'Doctor check scheduled',
+        body: nextDueAt
+          ? `${patient.firstName} ${patient.lastName} is not overdue. Next check is scheduled for ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(nextDueAt))}.`
+          : `${patient.firstName} ${patient.lastName} does not currently require a doctor check.`,
+        tag: `patient-check-scheduled-${patient.id}-${nextDueAt ?? 'none'}`,
+        data: { patientId: patient.id, type: 'system', url: '/patients' },
+      });
+      return;
+    }
+
+    emitAppNotification({
+      title: 'Doctor visit due',
+      body: `${patient.firstName} ${patient.lastName} is overdue for a doctor check based on the current visit schedule.`,
+      tag: `patient-due-immediate-${patient.id}`,
+      data: { patientId: patient.id, type: 'critical_alert', url: '/patients' },
+    });
+  };
+
+  if (isLoading && patients.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin mb-4"></div>
+          <span className="text-slate-400 tracking-widest uppercase text-xs">Loading patient registry...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full text-gray-200 font-sans antialiased">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -86,7 +136,18 @@ export function PatientsPage() {
           </p>
         </div>
         <div className="shrink-0">
-          <AddPatientDialog />
+          <AddPatientDialog
+            mode="create"
+            trigger={
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
+              >
+                Add patient
+              </button>
+            }
+            onSaved={handlePatientSaved}
+          />
         </div>
       </div>
 
@@ -316,9 +377,15 @@ export function PatientsPage() {
 
         <div className="min-h-[400px]">
           {viewMode === 'list' ? (
-            <PatientList data={paginatedPatients} />
+            <PatientList
+              data={paginatedPatients}
+              onPatientClick={(patient) => setEditingPatient(patient)}
+            />
           ) : (
-            <PatientGrid data={paginatedPatients} />
+            <PatientGrid
+              data={paginatedPatients}
+              onPatientClick={(patient) => setEditingPatient(patient)}
+            />
           )}
         </div>
       </div>
@@ -391,6 +458,18 @@ export function PatientsPage() {
           </button>
         </div>
       </div>
+
+      <AddPatientDialog
+        mode="edit"
+        patient={editingPatient}
+        open={!!editingPatient}
+        onSaved={handlePatientSaved}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPatient(null);
+          }
+        }}
+      />
     </div>
   );
 }
